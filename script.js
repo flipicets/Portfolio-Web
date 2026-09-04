@@ -1,62 +1,42 @@
-/* =========================================================
-   FELLIPE PICETSKEI — PORTFOLIO
-   Comportamentos de interface
-   ========================================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
-
-  // marca que o JS carregou, para o CSS só animar quando for seguro
   document.documentElement.classList.add('js');
 
-  /* ---- Menu mobile ---- */
-  const navToggle = document.getElementById('navToggle');
-  const navLinks  = document.getElementById('navLinks');
+  /* ---- Cursor Customizado ---- */
+  const cursor = document.getElementById('cursor');
+  const hoverElements = document.querySelectorAll('a, button, .skewed-card, .action-btn');
 
-  if (navToggle && navLinks) {
-    navToggle.addEventListener('click', () => {
-      const isOpen = navLinks.classList.toggle('is-open');
-      navToggle.setAttribute('aria-expanded', String(isOpen));
-    });
+  document.addEventListener('mousemove', (e) => {
+    // Atualiza a posição do cursor customizado
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
 
-    // fecha o menu ao clicar em um link (útil no mobile)
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('is-open');
-        navToggle.setAttribute('aria-expanded', 'false');
+  // Aumenta o cursor ao passar por cima de elementos clicáveis
+  hoverElements.forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+  });
+
+  /* ---- Efeito de Paralaxe nos Adesivos (Collage) ---- */
+  const stickers = document.querySelectorAll('.sticker');
+  const hero = document.querySelector('.hero-section');
+
+  if (hero && stickers.length > 0) {
+    hero.addEventListener('mousemove', (e) => {
+      const x = (window.innerWidth - e.pageX * 2) / 90;
+      const y = (window.innerHeight - e.pageY * 2) / 90;
+
+      stickers.forEach(sticker => {
+        const speed = sticker.getAttribute('data-speed') || 1;
+        const xPos = x * speed;
+        const yPos = y * speed;
+        
+        // Mantém a rotação original que está no CSS via regex ou variavel (simplificado usando translate no topo)
+        sticker.style.transform = `translateX(${xPos}px) translateY(${yPos}px) ${sticker.style.transform.replace(/translate.*?\)/g, '')}`;
       });
     });
   }
-
-  /* ---- Marquee: repete o conteúdo o quanto for preciso para nunca
-     deixar espaço vazio na tela, e duplica para o loop ficar contínuo ---- */
-  const marqueeEl = document.querySelector('.marquee');
-  const track = document.getElementById('marqueeTrack');
-
-  function buildMarquee() {
-    if (!marqueeEl || !track) return;
-
-    const unitHTML = track.querySelector('.marquee-unit')?.outerHTML;
-    if (!unitHTML) return;
-
-    // mede a largura de UMA cópia do texto
-    const probe = document.createElement('span');
-    probe.style.visibility = 'hidden';
-    probe.style.position = 'absolute';
-    probe.style.whiteSpace = 'nowrap';
-    probe.innerHTML = unitHTML;
-    document.body.appendChild(probe);
-    const unitWidth = probe.offsetWidth || 1;
-    document.body.removeChild(probe);
-
-    // quantas cópias cabem 2x na largura da tela (garante que nunca falte conteúdo)
-    const containerWidth = marqueeEl.offsetWidth;
-    const repeats = Math.max(2, Math.ceil((containerWidth * 2) / unitWidth));
-
-    track.innerHTML = unitHTML.repeat(repeats * 2);
-  }
-
-  buildMarquee();
-  window.addEventListener('resize', buildMarquee);
 
   /* ---- Ano dinâmico no rodapé ---- */
   const yearEl = document.getElementById('year');
@@ -64,34 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
     yearEl.textContent = new Date().getFullYear();
   }
 
-  /* ---- Leve fade-in ao rolar (não esconde conteúdo se o JS falhar) ---- */
-  const revealTargets = document.querySelectorAll('.project-card, .contact-panel');
-  revealTargets.forEach(el => el.classList.add('reveal'));
-
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.05 });
-
-    revealTargets.forEach(el => observer.observe(el));
-
-    // salvaguarda: garante que nada fique invisível para sempre
-    setTimeout(() => {
-      revealTargets.forEach(el => el.classList.add('is-visible'));
-    }, 2500);
+  /* ---- Texto Aleatório (Glitch Effect no Subtítulo) ---- */
+  const subtitle = document.querySelector('.hero-subtitle');
+  if (subtitle) {
+    setInterval(() => {
+      // Simula uma pequena falha no sistema a cada 5 segundos
+      const originalText = 'olha o que eu aprendi // <span class="blink">_____</span>';
+      subtitle.innerHTML = '0lhA 0 Qu3 3u 4pr3nD1 // <span class="blink">_!_!_</span>';
+      setTimeout(() => {
+        subtitle.innerHTML = originalText;
+      }, 50);
+    }, 2000);
   }
-
-  /* ---- Aviso amigável ao clicar nos cards de projeto vazios ---- */
-  document.querySelectorAll('.project-card--empty').forEach(card => {
-    card.addEventListener('click', () => {
-      card.style.borderColor = 'var(--orange)';
-      setTimeout(() => { card.style.borderColor = ''; }, 600);
-    });
-  });
-
 });
